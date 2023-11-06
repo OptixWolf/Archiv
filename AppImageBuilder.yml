@@ -1,0 +1,58 @@
+# appimage-builder recipe see https://appimage-builder.readthedocs.io for details
+script:
+ - rm -rf AppDir | true
+ - mkdir AppDir
+version: 1
+AppDir:
+  after_bundle:
+  - cp build/linux/x64/release/bundle/projekt_archive AppDir
+  - cp -r build/linux/x64/release/bundle/lib/. AppDir/lib
+  - cp -r build/linux/x64/release/bundle/data AppDir
+  - cp icon.svg AppDir/usr/share/icons/
+  path: /home/optixwolf/Nextcloud/Projekte/Flutter/projekt_archive/AppDir
+  app_info:
+    id: dev.optixwolf.archiv
+    name: Archiv
+    icon: icon
+    version: 1.0.0
+    exec: projekt_archive
+    exec_args: $@
+  pacman:
+    Architecture: x86_64
+    repositories:
+      core:
+        - https://mirror.rackspace.com/archlinux/$repo/os/$arch
+      extra:
+        - https://mirror.rackspace.com/archlinux/$repo/os/$arch
+    include:
+      - gtk3
+      - python
+      - perl
+    exclude: []
+  files:
+    include: []
+    exclude:
+    - usr/share/man
+    - usr/share/doc/*/README.*
+    - usr/share/doc/*/changelog.*
+    - usr/share/doc/*/NEWS.*
+    - usr/share/doc/*/TODO.*
+  test:
+    fedora-30:
+      image: appimagecrafters/tests-env:fedora-30
+      command: ./AppRun
+    debian-stable:
+      image: appimagecrafters/tests-env:debian-stable
+      command: ./AppRun
+    archlinux-latest:
+      image: appimagecrafters/tests-env:archlinux-latest
+      command: ./AppRun
+    centos-7:
+      image: appimagecrafters/tests-env:centos-7
+      command: ./AppRun
+    ubuntu-xenial:
+      image: appimagecrafters/tests-env:ubuntu-xenial
+      command: ./AppRun
+AppImage:
+  arch: x86_64
+  update-information: guess

@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Manuell
+Archiv-1.0.0-x86_64.AppImage
+Archiv-1.0.0-x86_64.AppImage.zsync
+
+# AppImage related
+/appimage-build/
+/AppDir/
