@@ -302,15 +302,18 @@ class ItemDetailPage extends StatelessWidget {
                     subtitle: Text(selectedItem['command'] ?? ''),
                   )),
                 ),
-                Card(
-                    child: ListTile(
-                  title: Text(selectedItem['link-titel']),
-                  subtitle: Text(selectedItem['link']),
-                  trailing: Icon(Icons.arrow_forward),
-                  onTap: () {
-                    _launchURL(selectedItem['link']);
-                  },
-                )),
+                Visibility(
+                  visible: selectedItem['link'] != null,
+                  child: Card(
+                      child: ListTile(
+                    title: Text(selectedItem['link-titel'] ?? ''),
+                    subtitle: Text(selectedItem['link'] ?? ''),
+                    trailing: Icon(Icons.arrow_forward),
+                    onTap: () {
+                      _launchURL(selectedItem['link'] ?? '');
+                    },
+                  )),
+                ),
                 Visibility(
                   visible: selectedItem['link2'] != null,
                   child: Card(
