@@ -1,7 +1,7 @@
 # Archiv
 
-Archiv ist eine Flutter anwendung, die Daten aus einer Supabase Datenbank liest und ausgibt.
-In diesem Fall befinden sich Daten zu anderen großartigen Projekten, die man entdecken kann.
+Archiv ist eine Flutter-Anwendung, die Daten aus einer Supabase-Datenbank liest und ausgibt.
+In diesem Fall enthält die Datenbank Daten über andere großartige Projekte, die entdeckt werden können.
 
 Archive is a Flutter application that reads and outputs data from a Supabase database.
-In this case, there is data on other great projects that you can discover.
+In this case, the database contains data on other great projects that can be discovered.
