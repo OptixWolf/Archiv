@@ -1,9 +1,12 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'keys.dart';
 
 Future<void> main() async {
@@ -51,7 +54,6 @@ class ThemePreferences {
     return ThemeMode.values[themeModeValue];
   }
 
-  // Funktion zum Speichern des ausgewählten ThemeMode
   static Future<void> setThemeMode(ThemeMode themeMode) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt(themeModeKey, themeMode.index);
@@ -110,6 +112,23 @@ class HomePageContent extends StatelessWidget {
       .from('Archive-Items')
       .select<List<Map<String, dynamic>>>();
 
+  Future<String> getPackageInfo() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    return packageInfo.version;
+  }
+
+  Future<String> getLatestReleaseVersion() async {
+    var url = Uri.parse(
+        'https://api.github.com/repos/OptixWolf/Archiv/releases/latest');
+    var response = await http.get(url);
+    if (response.statusCode == 200) {
+      var jsonResponse = jsonDecode(response.body);
+      return jsonResponse['tag_name'];
+    } else {
+      return "failed";
+    }
+  }
+
   HomePageContent({super.key});
 
   @override
@@ -124,6 +143,8 @@ class HomePageContent extends StatelessWidget {
           }
           final getitems = snapshot.data!;
           final items = removeDuplicatesKategorie(getitems);
+          final localVersion = getPackageInfo();
+          final newestVersion = getLatestReleaseVersion();
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -135,6 +156,36 @@ class HomePageContent extends StatelessWidget {
                   style: TextStyle(fontSize: 50),
                 ),
                 SizedBox(height: 10),
+                FutureBuilder(
+                  future: Future.wait([localVersion, newestVersion]),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      return Container();
+                    } else if (snapshot.hasData) {
+                      final lV = snapshot.data?[0];
+                      final nV = snapshot.data?[1];
+
+                      if (lV != nV) {
+                        return Card(
+                            child: ListTile(
+                          title: Text('Versionsprüfung'),
+                          subtitle: Text('Du hast nicht die neueste Version!'),
+                          trailing: Icon(Icons.arrow_forward),
+                          onTap: () {
+                            _launchURL(
+                                'https://github.com/OptixWolf/Archiv/releases/latest');
+                          },
+                        ));
+                      } else {
+                        return Container();
+                      }
+                    }
+                    return Container();
+                  },
+                ),
+                SizedBox(height: 20),
                 Text('Kategorien', style: TextStyle(fontSize: 25)),
                 SizedBox(height: 5),
                 Expanded(
