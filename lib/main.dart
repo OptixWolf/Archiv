@@ -337,7 +337,7 @@ class PlattformDetailPage extends StatelessWidget {
             }
 
             return Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(20.0),
               child: ListView.builder(
                 itemCount: items.length,
                 itemBuilder: ((context, index) {
@@ -384,7 +384,7 @@ class DetailPage extends StatelessWidget {
             Text(selectedItem['kategorie'] + ' - ' + selectedItem['plattform']),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(20.0),
         child: ListView.builder(
           itemCount: filteredItems.length,
           itemBuilder: ((context, index) {
@@ -420,7 +420,7 @@ class ItemDetailPage extends StatelessWidget {
         title: Text(selectedItem['titel']),
       ),
       body: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(20.0),
           child: SingleChildScrollView(
             child: Column(
               children: [
@@ -522,7 +522,7 @@ class About extends StatelessWidget {
         toolbarHeight: 10,
       ),
       body: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
