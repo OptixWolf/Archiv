@@ -171,6 +171,7 @@ class ThemedIconButtonState extends State<ThemedIconButton> {
 
     return IconButton(
       icon: Icon(iconData),
+      iconSize: 35,
       onPressed: () {
         _changeState();
       },
