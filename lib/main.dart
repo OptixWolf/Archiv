@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'dart:io' show Platform;
 import 'dart:convert';
 import 'keys.dart';
 
@@ -60,6 +61,21 @@ class ThemePreferences {
   }
 }
 
+class PlatformPreferences {
+  static const String platformKey = 'allPlatforms';
+
+  static Future<bool> getPlatformSetting() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final bool platformValue = prefs.getBool(platformKey) ?? true;
+    return platformValue;
+  }
+
+  static Future<void> setPlatformSetting(bool platformValue) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(platformKey, platformValue);
+  }
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -107,6 +123,61 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+class ThemedIconButton extends StatefulWidget {
+  const ThemedIconButton({super.key});
+
+  @override
+  ThemedIconButtonState createState() => ThemedIconButtonState();
+}
+
+class ThemedIconButtonState extends State<ThemedIconButton> {
+  ThemeMode selectedThemeMode = ThemeMode.system;
+
+  @override
+  void initState() {
+    super.initState();
+    ThemePreferences.getThemeMode().then((themeMode) {
+      setState(() {
+        selectedThemeMode = themeMode;
+      });
+    });
+  }
+
+  void _changeState() {
+    setState(() {
+      if (selectedThemeMode == ThemeMode.system) {
+        selectedThemeMode = ThemeMode.dark;
+        ThemePreferences.setThemeMode(selectedThemeMode);
+        runApp(MyApp());
+      } else if (selectedThemeMode == ThemeMode.dark) {
+        selectedThemeMode = ThemeMode.light;
+        ThemePreferences.setThemeMode(selectedThemeMode);
+        runApp(MyApp());
+      } else {
+        selectedThemeMode = ThemeMode.system;
+        ThemePreferences.setThemeMode(selectedThemeMode);
+        runApp(MyApp());
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final IconData iconData = selectedThemeMode == ThemeMode.light
+        ? Icons.wb_sunny
+        : selectedThemeMode == ThemeMode.system
+            ? Icons.dark_mode
+            : Icons.brightness_auto;
+
+    return IconButton(
+      icon: Icon(iconData),
+      onPressed: () {
+        _changeState();
+      },
+    );
+  }
+}
+
 class HomePageContent extends StatelessWidget {
   final _future = Supabase.instance.client
       .from('Archive-Items')
@@ -147,14 +218,18 @@ class HomePageContent extends StatelessWidget {
           final newestVersion = getLatestReleaseVersion();
 
           return Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Archiv',
-                  style: TextStyle(fontSize: 50),
-                ),
+                Row(children: [
+                  Text('Archiv', style: TextStyle(fontSize: 50)),
+                  Spacer(),
+                  ThemedIconButton(),
+                  SizedBox(
+                    width: 10,
+                  )
+                ]),
                 SizedBox(height: 10),
                 FutureBuilder(
                   future: Future.wait([localVersion, newestVersion]),
@@ -232,35 +307,58 @@ class PlattformDetailPage extends StatelessWidget {
     List<Map<String, dynamic>> filteredItems = getitems.where((item) {
       return item['kategorie'] == selectedItem['kategorie'];
     }).toList();
-    final items = removeDuplicatesPlattform(filteredItems);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(selectedItem['kategorie']),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ListView.builder(
-          itemCount: items.length,
-          itemBuilder: ((context, index) {
-            final sortedItems = List.from(items);
-            sortedItems
-                .sort((a, b) => a['plattform'].compareTo(b['plattform']));
-            final item = sortedItems[index];
-            return Card(
-              child: ListTile(
-                  title: Text(item['plattform']),
-                  trailing: Icon(Icons.arrow_forward),
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) =>
-                          DetailPage(getitems: getitems, selectedItem: item),
-                    ));
-                  }),
+      body: FutureBuilder(
+          future: PlatformPreferences.getPlatformSetting(),
+          builder: (context, snapshot) {
+            dynamic platformValue;
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              platformValue = true;
+            } else {
+              platformValue = snapshot.data;
+            }
+
+            dynamic items;
+
+            if (platformValue) {
+              items = removeDuplicatesPlattform(filteredItems);
+            } else {
+              final removedDuplicatedItems =
+                  removeDuplicatesPlattform(filteredItems);
+              items = removeOtherPlatforms(removedDuplicatedItems);
+            }
+
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListView.builder(
+                itemCount: items.length,
+                itemBuilder: ((context, index) {
+                  final sortedItems = List.from(items);
+                  sortedItems
+                      .sort((a, b) => a['plattform'].compareTo(b['plattform']));
+                  final item = sortedItems[index];
+                  return Card(
+                    child: ListTile(
+                        title: Text(item['plattform']),
+                        trailing: Icon(Icons.arrow_forward),
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => DetailPage(
+                                getitems: getitems, selectedItem: item),
+                          ));
+                        }),
+                  );
+                }),
+              ),
             );
           }),
-        ),
-      ),
     );
   }
 }
@@ -477,19 +575,25 @@ class Settings extends StatefulWidget {
   const Settings({super.key});
 
   @override
-  _SettingsState createState() => _SettingsState();
+  SettingsState createState() => SettingsState();
 }
 
-class _SettingsState extends State<Settings> {
-  ThemeMode selectedThemeMode = ThemeMode.system;
+class SettingsState extends State<Settings> {
+  bool selectedPlatformValue = true;
 
   @override
   void initState() {
     super.initState();
-    ThemePreferences.getThemeMode().then((themeMode) {
+    PlatformPreferences.getPlatformSetting().then((platformValue) {
       setState(() {
-        selectedThemeMode = themeMode;
+        selectedPlatformValue = platformValue;
       });
+    });
+  }
+
+  void toggleSwitch() {
+    setState(() {
+      selectedPlatformValue = !selectedPlatformValue;
     });
   }
 
@@ -500,7 +604,7 @@ class _SettingsState extends State<Settings> {
         toolbarHeight: 10,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -508,55 +612,25 @@ class _SettingsState extends State<Settings> {
             SizedBox(
               height: 25,
             ),
-            Text('System Design', style: TextStyle(fontSize: 25)),
+            Text('Allgemeine Einstellungen', style: TextStyle(fontSize: 25)),
             Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    title: Text('System folgen'),
-                    leading: Radio(
-                      value: ThemeMode.system,
-                      groupValue: selectedThemeMode,
-                      onChanged: (value) {
-                        setState(() {
-                          ThemePreferences.setThemeMode(value as ThemeMode);
-                          selectedThemeMode = value;
-                          runApp(MyApp());
-                        });
-                      },
-                    ),
-                  ),
-                  ListTile(
-                    title: Text('Heller Modus'),
-                    leading: Radio(
-                      value: ThemeMode.light,
-                      groupValue: selectedThemeMode,
-                      onChanged: (value) {
-                        setState(() {
-                          ThemePreferences.setThemeMode(value as ThemeMode);
-                          selectedThemeMode = value;
-                          runApp(MyApp());
-                        });
-                      },
-                    ),
-                  ),
-                  ListTile(
-                    title: Text('Dark Mode'),
-                    leading: Radio(
-                      value: ThemeMode.dark,
-                      groupValue: selectedThemeMode,
-                      onChanged: (value) {
-                        setState(() {
-                          ThemePreferences.setThemeMode(value as ThemeMode);
-                          selectedThemeMode = value;
-                          runApp(MyApp());
-                        });
-                      },
-                    ),
-                  ),
-                ],
+                child: ListTile(
+              title: Text('Aktiviere alle Plattformen'),
+              subtitle: Text(
+                  'Wenn deaktiviert, siehst du nur noch Inhalte für deine aktuelle Plattform'),
+              trailing: Switch(
+                value: selectedPlatformValue,
+                onChanged: (value) {
+                  setState(() {
+                    PlatformPreferences.setPlatformSetting(value);
+                    toggleSwitch();
+                  });
+                },
               ),
-            ),
+              onTap: () {
+                toggleSwitch();
+              },
+            ))
           ],
         ),
       ),
@@ -596,6 +670,31 @@ List<Map<String, dynamic>> removeDuplicatesPlattform(
   }
 
   return uniqueItems;
+}
+
+List<Map<String, dynamic>> removeOtherPlatforms(
+    List<Map<String, dynamic>> items) {
+  List<Map<String, dynamic>> curPlatformItems = [];
+
+  for (var item in items) {
+    String plattform = item['plattform'];
+
+    if (Platform.isAndroid && plattform.contains('Android') ||
+        plattform == 'Universal' ||
+        plattform == 'Browser') {
+      curPlatformItems.add(item);
+    } else if (Platform.isLinux && plattform.contains('Linux') ||
+        plattform == 'Universal' ||
+        plattform == 'Browser') {
+      curPlatformItems.add(item);
+    } else if (Platform.isWindows && plattform.contains('Windows') ||
+        plattform == 'Universal' ||
+        plattform == 'Browser') {
+      curPlatformItems.add(item);
+    }
+  }
+
+  return curPlatformItems;
 }
 
 _launchURL(String url) async {
