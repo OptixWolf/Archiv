@@ -3,7 +3,7 @@ description: Eine App, die verschiedene Projekte vorstellt.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0
+version: 1.0.1
 
 environment:
   sdk: ^3.1.1
