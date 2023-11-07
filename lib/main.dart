@@ -224,6 +224,7 @@ class HomePageContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
+                  SizedBox(width: 7),
                   Text('Archiv', style: TextStyle(fontSize: 50)),
                   Spacer(),
                   ThemedIconButton(),
@@ -262,7 +263,10 @@ class HomePageContent extends StatelessWidget {
                   },
                 ),
                 SizedBox(height: 20),
-                Text('Kategorien', style: TextStyle(fontSize: 25)),
+                Row(children: [
+                  SizedBox(width: 7),
+                  Text('Kategorien', style: TextStyle(fontSize: 25))
+                ]),
                 SizedBox(height: 5),
                 Expanded(
                   child: ListView.builder(
@@ -530,15 +534,17 @@ class About extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 15),
-                  Text(
-                    'Über die App',
-                    style: TextStyle(fontSize: 40),
-                  ),
+                  Row(children: [
+                    SizedBox(
+                      width: 7,
+                    ),
+                    Text('Über die App', style: TextStyle(fontSize: 40)),
+                  ]),
                   SizedBox(height: 15),
-                  Text(
-                    'Autor',
-                    style: TextStyle(fontSize: 25),
-                  ),
+                  Row(children: [
+                    SizedBox(width: 7),
+                    Text('Autor', style: TextStyle(fontSize: 25))
+                  ]),
                   Card(
                       child: ListTile(
                     title: Text('OptixWolf', style: TextStyle(fontSize: 20)),
@@ -546,10 +552,10 @@ class About extends StatelessWidget {
                   SizedBox(height: 30),
                 ],
               ),
-              Text(
-                'Discord',
-                style: TextStyle(fontSize: 25),
-              ),
+              Row(children: [
+                SizedBox(width: 7),
+                Text('Discord', style: TextStyle(fontSize: 25))
+              ]),
               SizedBox(height: 5),
               Card(
                   child: ListTile(
@@ -595,6 +601,7 @@ class SettingsState extends State<Settings> {
   void toggleSwitch() {
     setState(() {
       selectedPlatformValue = !selectedPlatformValue;
+      PlatformPreferences.setPlatformSetting(selectedPlatformValue);
     });
   }
 
@@ -609,11 +616,17 @@ class SettingsState extends State<Settings> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Einstellungen', style: TextStyle(fontSize: 50)),
+            Row(children: [
+              SizedBox(width: 7),
+              Text('Einstellungen', style: TextStyle(fontSize: 50)),
+            ]),
             SizedBox(
               height: 25,
             ),
-            Text('Allgemeine Einstellungen', style: TextStyle(fontSize: 25)),
+            Row(children: [
+              SizedBox(width: 7),
+              Text('Allgemeine Einstellungen', style: TextStyle(fontSize: 25)),
+            ]),
             Card(
                 child: ListTile(
               title: Text('Aktiviere alle Plattformen'),
@@ -622,10 +635,7 @@ class SettingsState extends State<Settings> {
               trailing: Switch(
                 value: selectedPlatformValue,
                 onChanged: (value) {
-                  setState(() {
-                    PlatformPreferences.setPlatformSetting(value);
-                    toggleSwitch();
-                  });
+                  toggleSwitch();
                 },
               ),
               onTap: () {
