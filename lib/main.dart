@@ -342,26 +342,36 @@ class PlattformDetailPage extends StatelessWidget {
 
             return Padding(
               padding: const EdgeInsets.all(20.0),
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: ((context, index) {
-                  final sortedItems = List.from(items);
-                  sortedItems
-                      .sort((a, b) => a['plattform'].compareTo(b['plattform']));
-                  final item = sortedItems[index];
-                  return Card(
-                    child: ListTile(
-                        title: Text(item['plattform']),
-                        trailing: Icon(Icons.arrow_forward),
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => DetailPage(
-                                getitems: getitems, selectedItem: item),
-                          ));
-                        }),
-                  );
-                }),
-              ),
+              child: Column(children: [
+                Row(
+                  children: [
+                    SizedBox(width: 7),
+                    Text('Plattform', style: TextStyle(fontSize: 25))
+                  ],
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: ((context, index) {
+                      final sortedItems = List.from(items);
+                      sortedItems.sort(
+                          (a, b) => a['plattform'].compareTo(b['plattform']));
+                      final item = sortedItems[index];
+                      return Card(
+                        child: ListTile(
+                            title: Text(item['plattform']),
+                            trailing: Icon(Icons.arrow_forward),
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => DetailPage(
+                                    getitems: getitems, selectedItem: item),
+                              ));
+                            }),
+                      );
+                    }),
+                  ),
+                ),
+              ]),
             );
           }),
     );
