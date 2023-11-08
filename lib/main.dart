@@ -548,6 +548,10 @@ class About extends StatelessWidget {
                   Card(
                       child: ListTile(
                     title: Text('OptixWolf', style: TextStyle(fontSize: 20)),
+                    trailing: Icon(Icons.arrow_forward),
+                    onTap: () {
+                      _launchURL('https://github.com/OptixWolf');
+                    },
                   )),
                   SizedBox(height: 30),
                 ],
