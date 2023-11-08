@@ -368,7 +368,7 @@ class PlattformDetailPage extends StatelessWidget {
   }
 }
 
-class DetailPage extends StatelessWidget {
+class DetailPage extends StatefulWidget {
   final List<Map<String, dynamic>> getitems;
   final Map<String, dynamic> selectedItem;
 
@@ -376,36 +376,80 @@ class DetailPage extends StatelessWidget {
       {super.key, required this.getitems, required this.selectedItem});
 
   @override
-  Widget build(BuildContext context) {
-    List<Map<String, dynamic>> filteredItems = getitems.where((item) {
-      return item['kategorie'] == selectedItem['kategorie'] &&
-          item['plattform'] == selectedItem['plattform'];
-    }).toList();
+  DetailPageState createState() => DetailPageState();
+}
 
+class DetailPageState extends State<DetailPage> {
+  late List<Map<String, dynamic>> filteredItems;
+
+  @override
+  void initState() {
+    super.initState();
+    filteredItems = widget.getitems
+        .where((item) =>
+            item['kategorie'] == widget.selectedItem['kategorie'] &&
+            item['plattform'] == widget.selectedItem['plattform'])
+        .toList();
+  }
+
+  void filterSearchResults(String query) {
+    setState(() {
+      filteredItems = widget.getitems
+          .where((item) =>
+              item['kategorie'] == widget.selectedItem['kategorie'] &&
+              item['plattform'] == widget.selectedItem['plattform'] &&
+              item['titel'].toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(selectedItem['kategorie'] + ' - ' + selectedItem['plattform']),
+        title: Text(widget.selectedItem['kategorie'] +
+            ' - ' +
+            widget.selectedItem['plattform']),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: ListView.builder(
-          itemCount: filteredItems.length,
-          itemBuilder: ((context, index) {
-            final sortedItems = List.from(filteredItems);
-            sortedItems.sort((a, b) => a['titel'].compareTo(b['titel']));
-            final item = sortedItems[index];
-            return Card(
-              child: ListTile(
-                  title: Text(item['titel']),
-                  trailing: Icon(Icons.arrow_forward),
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => ItemDetailPage(selectedItem: item),
-                    ));
-                  }),
-            );
-          }),
+        child: Column(
+          children: [
+            TextField(
+              onChanged: filterSearchResults,
+              decoration: InputDecoration(
+                labelText: 'Suche',
+                hintText: 'Suche',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemCount: filteredItems.length,
+                itemBuilder: (context, index) {
+                  final sortedItems = List.from(filteredItems);
+                  sortedItems.sort((a, b) => a['titel'].compareTo(b['titel']));
+                  final item = sortedItems[index];
+                  return Card(
+                    child: ListTile(
+                      title: Text(item['titel']),
+                      trailing: Icon(Icons.arrow_forward),
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) =>
+                              ItemDetailPage(selectedItem: item),
+                        ));
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
