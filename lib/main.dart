@@ -570,7 +570,7 @@ class About extends StatelessWidget {
                   child: ListTile(
                 title: Text('Warum beitreten?'),
                 subtitle: Text(
-                    '• Neue Archiv einträge einreichen\n• Vorschläge für die App\n• Melden von problemen'),
+                    '• Neue Archiv Einträge einreichen\n• Vorschläge für die App\n• Melden von problemen'),
               )),
             ],
           )),
