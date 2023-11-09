@@ -770,15 +770,15 @@ List<Map<String, dynamic>> removeOtherPlatforms(
     String plattform = item['plattform'];
 
     if (Platform.isAndroid && plattform.contains('Android') ||
-        plattform == 'Universal' ||
+        plattform == 'Universell' ||
         plattform == 'Browser') {
       curPlatformItems.add(item);
     } else if (Platform.isLinux && plattform.contains('Linux') ||
-        plattform == 'Universal' ||
+        plattform == 'Universell' ||
         plattform == 'Browser') {
       curPlatformItems.add(item);
     } else if (Platform.isWindows && plattform.contains('Windows') ||
-        plattform == 'Universal' ||
+        plattform == 'Universell' ||
         plattform == 'Browser') {
       curPlatformItems.add(item);
     }
