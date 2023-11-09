@@ -475,7 +475,7 @@ class ItemDetailPage extends StatelessWidget {
     Clipboard.setData(ClipboardData(text: text));
   }
 
-  void _showToast(BuildContext context) {
+  void _showSnackbar(BuildContext context) {
     final scaffold = ScaffoldMessenger.of(context);
     scaffold.showSnackBar(
       SnackBar(
@@ -502,10 +502,11 @@ class ItemDetailPage extends StatelessWidget {
                   child: Column(
                     children: [
                       Card(
+                          surfaceTintColor: Colors.red,
                           child: ListTile(
-                        title: Text('Hinweis'),
-                        subtitle: Text(selectedItem['hint'] ?? ''),
-                      )),
+                            title: Text('Hinweis'),
+                            subtitle: Text(selectedItem['hint'] ?? ''),
+                          )),
                       SizedBox(
                         height: 10,
                       )
@@ -526,7 +527,7 @@ class ItemDetailPage extends StatelessWidget {
                     trailing: Icon(Icons.copy),
                     onTap: () {
                       setClipboardText(selectedItem['command']);
-                      _showToast(context);
+                      _showSnackbar(context);
                     },
                   )),
                 ),
