@@ -400,16 +400,32 @@ class DetailPage extends StatefulWidget {
 }
 
 class DetailPageState extends State<DetailPage> {
-  late List<Map<String, dynamic>> filteredItems;
+  late List<Map<String, dynamic>> filteredItems = [];
+
+  bool archived = true;
 
   @override
   void initState() {
     super.initState();
-    filteredItems = widget.getitems
-        .where((item) =>
-            item['kategorie'] == widget.selectedItem['kategorie'] &&
-            item['plattform'] == widget.selectedItem['plattform'])
-        .toList();
+    getArchivedValue().then((value) {
+      setState(() {
+        archived = value;
+        filteredItems = widget.getitems
+            .where((item) =>
+                item['kategorie'] == widget.selectedItem['kategorie'] &&
+                item['plattform'] == widget.selectedItem['plattform'])
+            .toList();
+
+        if (archived) {
+          filteredItems = removeArchivedItems(filteredItems);
+        }
+      });
+    });
+  }
+
+  Future<bool> getArchivedValue() async {
+    final archivedValue = await Preferences.getArchivedSetting();
+    return archivedValue;
   }
 
   void filterSearchResults(String query) {
@@ -420,6 +436,10 @@ class DetailPageState extends State<DetailPage> {
               item['plattform'] == widget.selectedItem['plattform'] &&
               item['titel'].toLowerCase().contains(query.toLowerCase()))
           .toList();
+
+      if (archived) {
+        filteredItems = removeArchivedItems(filteredItems);
+      }
     });
   }
 
@@ -431,70 +451,47 @@ class DetailPageState extends State<DetailPage> {
             ' - ' +
             widget.selectedItem['plattform']),
       ),
-      body: FutureBuilder(
-        future: Preferences.getArchivedSetting(),
-        builder: (context, snapshot) {
-          dynamic archivedValue;
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            archivedValue = true;
-          } else {
-            archivedValue = snapshot.data;
-          }
-
-          dynamic items;
-
-          if (archivedValue) {
-            items = removeArchivedItems(filteredItems);
-          } else {
-            items = filteredItems;
-          }
-
-          return Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                TextField(
-                  onChanged: filterSearchResults,
-                  decoration: InputDecoration(
-                    labelText: 'Suche',
-                    hintText: 'Suche',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                    ),
-                  ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            TextField(
+              onChanged: filterSearchResults,
+              decoration: InputDecoration(
+                labelText: 'Suche',
+                hintText: 'Suche',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(25.0)),
                 ),
-                SizedBox(height: 10),
-                Expanded(
-                  child: ListView.builder(
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final sortedItems = List.from(items);
-                        sortedItems
-                            .sort((a, b) => a['titel'].compareTo(b['titel']));
-                        final item = sortedItems[index];
-
-                        return Card(
-                          child: ListTile(
-                            title: Text(item['titel']),
-                            trailing: Icon(Icons.arrow_forward),
-                            onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) =>
-                                    ItemDetailPage(selectedItem: item),
-                              ));
-                            },
-                          ),
-                        );
-                      }),
-                ),
-              ],
+              ),
             ),
-          );
-        },
+            SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                  itemCount: filteredItems.length,
+                  itemBuilder: (context, index) {
+                    final sortedItems = List.from(filteredItems);
+                    sortedItems
+                        .sort((a, b) => a['titel'].compareTo(b['titel']));
+                    final item = sortedItems[index];
+
+                    return Card(
+                      child: ListTile(
+                        title: Text(item['titel']),
+                        trailing: Icon(Icons.arrow_forward),
+                        onTap: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) =>
+                                ItemDetailPage(selectedItem: item),
+                          ));
+                        },
+                      ),
+                    );
+                  }),
+            ),
+          ],
+        ),
       ),
     );
   }
