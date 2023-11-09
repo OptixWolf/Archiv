@@ -447,7 +447,7 @@ class DetailPageState extends State<DetailPage> {
           dynamic items;
 
           if (archivedValue) {
-            items = removeArchievedItems(filteredItems);
+            items = removeArchivedItems(filteredItems);
           } else {
             items = filteredItems;
           }
@@ -824,7 +824,7 @@ List<Map<String, dynamic>> removeDuplicatesPlattform(
   return uniqueItems;
 }
 
-List<Map<String, dynamic>> removeArchievedItems(
+List<Map<String, dynamic>> removeArchivedItems(
     List<Map<String, dynamic>> items) {
   List<Map<String, dynamic>> notArchivedItems = [];
 
