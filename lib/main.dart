@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<ThemeMode>(
-      future: ThemePreferences.getThemeMode(),
+      future: Preferences.getThemeMode(),
       builder: (context, themeModeSnapshot) {
         final currentThemeMode = themeModeSnapshot.data ?? ThemeMode.system;
 
@@ -46,8 +46,10 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class ThemePreferences {
+class Preferences {
   static const String themeModeKey = 'themeMode';
+  static const String platformKey = 'allPlatforms';
+  static const String archivedKey = 'archived';
 
   static Future<ThemeMode> getThemeMode() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -59,10 +61,6 @@ class ThemePreferences {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt(themeModeKey, themeMode.index);
   }
-}
-
-class PlatformPreferences {
-  static const String platformKey = 'allPlatforms';
 
   static Future<bool> getPlatformSetting() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -73,6 +71,17 @@ class PlatformPreferences {
   static Future<void> setPlatformSetting(bool platformValue) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool(platformKey, platformValue);
+  }
+
+  static Future<bool> getArchivedSetting() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final bool archivedValue = prefs.getBool(archivedKey) ?? true;
+    return archivedValue;
+  }
+
+  static Future<void> setArchivedSetting(bool archivedValue) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(archivedKey, archivedValue);
   }
 }
 
@@ -136,7 +145,7 @@ class ThemedIconButtonState extends State<ThemedIconButton> {
   @override
   void initState() {
     super.initState();
-    ThemePreferences.getThemeMode().then((themeMode) {
+    Preferences.getThemeMode().then((themeMode) {
       setState(() {
         selectedThemeMode = themeMode;
       });
@@ -147,15 +156,15 @@ class ThemedIconButtonState extends State<ThemedIconButton> {
     setState(() {
       if (selectedThemeMode == ThemeMode.system) {
         selectedThemeMode = ThemeMode.dark;
-        ThemePreferences.setThemeMode(selectedThemeMode);
+        Preferences.setThemeMode(selectedThemeMode);
         runApp(MyApp());
       } else if (selectedThemeMode == ThemeMode.dark) {
         selectedThemeMode = ThemeMode.light;
-        ThemePreferences.setThemeMode(selectedThemeMode);
+        Preferences.setThemeMode(selectedThemeMode);
         runApp(MyApp());
       } else {
         selectedThemeMode = ThemeMode.system;
-        ThemePreferences.setThemeMode(selectedThemeMode);
+        Preferences.setThemeMode(selectedThemeMode);
         runApp(MyApp());
       }
     });
@@ -318,7 +327,7 @@ class PlattformDetailPage extends StatelessWidget {
         title: Text(selectedItem['kategorie']),
       ),
       body: FutureBuilder(
-          future: PlatformPreferences.getPlatformSetting(),
+          future: Preferences.getPlatformSetting(),
           builder: (context, snapshot) {
             dynamic platformValue;
 
@@ -357,6 +366,7 @@ class PlattformDetailPage extends StatelessWidget {
                       sortedItems.sort(
                           (a, b) => a['plattform'].compareTo(b['plattform']));
                       final item = sortedItems[index];
+
                       return Card(
                         child: ListTile(
                             title: Text(item['plattform']),
@@ -421,46 +431,70 @@ class DetailPageState extends State<DetailPage> {
             ' - ' +
             widget.selectedItem['plattform']),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            TextField(
-              onChanged: filterSearchResults,
-              decoration: InputDecoration(
-                labelText: 'Suche',
-                hintText: 'Suche',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: filteredItems.length,
-                itemBuilder: (context, index) {
-                  final sortedItems = List.from(filteredItems);
-                  sortedItems.sort((a, b) => a['titel'].compareTo(b['titel']));
-                  final item = sortedItems[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(item['titel']),
-                      trailing: Icon(Icons.arrow_forward),
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) =>
-                              ItemDetailPage(selectedItem: item),
-                        ));
-                      },
+      body: FutureBuilder(
+        future: Preferences.getArchivedSetting(),
+        builder: (context, snapshot) {
+          dynamic archivedValue;
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator();
+          } else if (snapshot.hasError) {
+            archivedValue = true;
+          } else {
+            archivedValue = snapshot.data;
+          }
+
+          dynamic items;
+
+          if (archivedValue) {
+            items = removeArchievedItems(filteredItems);
+          } else {
+            items = filteredItems;
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              children: [
+                TextField(
+                  onChanged: filterSearchResults,
+                  decoration: InputDecoration(
+                    labelText: 'Suche',
+                    hintText: 'Suche',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(25.0)),
                     ),
-                  );
-                },
-              ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Expanded(
+                  child: ListView.builder(
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final sortedItems = List.from(items);
+                        sortedItems
+                            .sort((a, b) => a['titel'].compareTo(b['titel']));
+                        final item = sortedItems[index];
+
+                        return Card(
+                          child: ListTile(
+                            title: Text(item['titel']),
+                            trailing: Icon(Icons.arrow_forward),
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) =>
+                                    ItemDetailPage(selectedItem: item),
+                              ));
+                            },
+                          ),
+                        );
+                      }),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -666,21 +700,34 @@ class Settings extends StatefulWidget {
 
 class SettingsState extends State<Settings> {
   bool selectedPlatformValue = true;
+  bool selectedArchivedValue = true;
 
   @override
   void initState() {
     super.initState();
-    PlatformPreferences.getPlatformSetting().then((platformValue) {
+    Preferences.getPlatformSetting().then((platformValue) {
       setState(() {
         selectedPlatformValue = platformValue;
       });
     });
+    Preferences.getArchivedSetting().then((archivedValue) {
+      setState(() {
+        selectedArchivedValue = archivedValue;
+      });
+    });
   }
 
-  void toggleSwitch() {
+  void toggleSwitchPlatform() {
     setState(() {
       selectedPlatformValue = !selectedPlatformValue;
-      PlatformPreferences.setPlatformSetting(selectedPlatformValue);
+      Preferences.setPlatformSetting(selectedPlatformValue);
+    });
+  }
+
+  void toggleSwitchArchived() {
+    setState(() {
+      selectedArchivedValue = !selectedArchivedValue;
+      Preferences.setArchivedSetting(selectedArchivedValue);
     });
   }
 
@@ -714,11 +761,26 @@ class SettingsState extends State<Settings> {
               trailing: Switch(
                 value: selectedPlatformValue,
                 onChanged: (value) {
-                  toggleSwitch();
+                  toggleSwitchPlatform();
                 },
               ),
               onTap: () {
-                toggleSwitch();
+                toggleSwitchPlatform();
+              },
+            )),
+            Card(
+                child: ListTile(
+              title: Text('Verstecke Archivierte Einträge'),
+              subtitle:
+                  Text('Wenn deaktiviert, siehst du Archivierte Einträge'),
+              trailing: Switch(
+                value: selectedArchivedValue,
+                onChanged: (value) {
+                  toggleSwitchArchived();
+                },
+              ),
+              onTap: () {
+                toggleSwitchArchived();
               },
             ))
           ],
@@ -760,6 +822,21 @@ List<Map<String, dynamic>> removeDuplicatesPlattform(
   }
 
   return uniqueItems;
+}
+
+List<Map<String, dynamic>> removeArchievedItems(
+    List<Map<String, dynamic>> items) {
+  List<Map<String, dynamic>> notArchivedItems = [];
+
+  for (var item in items) {
+    String currentItem = item['titel'];
+
+    if (!currentItem.startsWith('[Archiviert]')) {
+      notArchivedItems.add(item);
+    }
+  }
+
+  return notArchivedItems;
 }
 
 List<Map<String, dynamic>> removeOtherPlatforms(
