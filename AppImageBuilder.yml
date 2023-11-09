@@ -14,7 +14,7 @@ AppDir:
     id: dev.optixwolf.archiv
     name: Archiv
     icon: icon
-    version: 1.0.0
+    version: 1.0.2
     exec: projekt_archive
     exec_args: $@
   pacman:

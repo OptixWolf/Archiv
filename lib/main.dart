@@ -1,10 +1,10 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io' show Platform;
 import 'dart:convert';
@@ -249,7 +249,7 @@ class HomePageContent extends StatelessWidget {
                             child: ListTile(
                           title: Text('Versionsprüfung'),
                           subtitle: Text('Du hast nicht die neueste Version!'),
-                          trailing: Icon(Icons.arrow_forward),
+                          trailing: Icon(Icons.open_in_new),
                           onTap: () {
                             _launchURL(
                                 'https://github.com/OptixWolf/Archiv/releases/latest');
@@ -471,6 +471,21 @@ class ItemDetailPage extends StatelessWidget {
 
   const ItemDetailPage({super.key, required this.selectedItem});
 
+  void setClipboardText(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+  }
+
+  void _showToast(BuildContext context) {
+    final scaffold = ScaffoldMessenger.of(context);
+    scaffold.showSnackBar(
+      SnackBar(
+        content: const Text('Inhalt wurde in die Zwischenablage gespeichert'),
+        action: SnackBarAction(
+            label: 'OK', onPressed: scaffold.hideCurrentSnackBar),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -508,6 +523,11 @@ class ItemDetailPage extends StatelessWidget {
                       child: ListTile(
                     title: Text(selectedItem['command-titel'] ?? ''),
                     subtitle: Text(selectedItem['command'] ?? ''),
+                    trailing: Icon(Icons.copy),
+                    onTap: () {
+                      setClipboardText(selectedItem['command']);
+                      _showToast(context);
+                    },
                   )),
                 ),
                 Visibility(
@@ -516,7 +536,7 @@ class ItemDetailPage extends StatelessWidget {
                       child: ListTile(
                     title: Text(selectedItem['link-titel'] ?? ''),
                     subtitle: Text(selectedItem['link'] ?? ''),
-                    trailing: Icon(Icons.arrow_forward),
+                    trailing: Icon(Icons.open_in_new),
                     onTap: () {
                       _launchURL(selectedItem['link'] ?? '');
                     },
@@ -528,7 +548,7 @@ class ItemDetailPage extends StatelessWidget {
                       child: ListTile(
                     title: Text(selectedItem['link2-titel'] ?? ''),
                     subtitle: Text(selectedItem['link2'] ?? ''),
-                    trailing: Icon(Icons.arrow_forward),
+                    trailing: Icon(Icons.open_in_new),
                     onTap: () {
                       _launchURL(selectedItem['link2'] ?? '');
                     },
@@ -540,7 +560,7 @@ class ItemDetailPage extends StatelessWidget {
                       child: ListTile(
                     title: Text(selectedItem['link3-titel'] ?? ''),
                     subtitle: Text(selectedItem['link3'] ?? ''),
-                    trailing: Icon(Icons.arrow_forward),
+                    trailing: Icon(Icons.open_in_new),
                     onTap: () {
                       _launchURL(selectedItem['link3'] ?? '');
                     },
@@ -553,7 +573,7 @@ class ItemDetailPage extends StatelessWidget {
                     child: ListTile(
                   title: Text('Projekt Autor'),
                   subtitle: Text(selectedItem['projekt-autor']),
-                  trailing: Icon(Icons.arrow_forward),
+                  trailing: Icon(Icons.open_in_new),
                   onTap: () {
                     _launchURL(selectedItem['projekt-autor-link'] ?? '');
                   },
@@ -602,7 +622,7 @@ class About extends StatelessWidget {
                   Card(
                       child: ListTile(
                     title: Text('OptixWolf', style: TextStyle(fontSize: 20)),
-                    trailing: Icon(Icons.arrow_forward),
+                    trailing: Icon(Icons.open_in_new),
                     onTap: () {
                       _launchURL('https://github.com/OptixWolf');
                     },
@@ -618,7 +638,7 @@ class About extends StatelessWidget {
               Card(
                   child: ListTile(
                 title: Text('https://discord.gg/KW7GWQfKaj'),
-                trailing: Icon(Icons.arrow_forward),
+                trailing: Icon(Icons.open_in_new),
                 onTap: () {
                   _launchURL('https://discord.gg/KW7GWQfKaj');
                 },
