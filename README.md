@@ -1,6 +1,6 @@
 # Archiv
 
-[![version](https://img.shields.io/badge/version-1.0.1-blue)](https://github.com/OptixWolf/Archiv/releases/latest)
+[![version](https://img.shields.io/badge/version-1.0.3-blue)](https://github.com/OptixWolf/Archiv/releases/latest)
 [![](https://img.shields.io/github/downloads/OptixWolf/Archiv/total)](https://github.com/OptixWolf/Archiv/releases/latest)
 [![](https://img.shields.io/discord/1107109693165416588?logo=discord)](https://discord.com/invite/KW7GWQfKaj)
 
