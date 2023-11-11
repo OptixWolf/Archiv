@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io' show Platform;
@@ -188,7 +189,15 @@ class ThemedIconButtonState extends State<ThemedIconButton> {
   }
 }
 
-class HomePageContent extends StatelessWidget {
+class HomePageContent extends StatefulWidget {
+  @override
+  HomePageContentState createState() => HomePageContentState();
+
+  const HomePageContent({super.key});
+}
+
+class HomePageContentState extends State<HomePageContent> {
+  Key _futureBuilderKey = UniqueKey();
   final _future = Supabase.instance.client
       .from('Archive-Items')
       .select<List<Map<String, dynamic>>>();
@@ -210,17 +219,38 @@ class HomePageContent extends StatelessWidget {
     }
   }
 
-  HomePageContent({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(toolbarHeight: 15),
       body: FutureBuilder<List<Map<String, dynamic>>>(
+        key: _futureBuilderKey,
         future: _future,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    LoadingAnimationWidget.threeArchedCircle(
+                        color: Colors.blueGrey, size: 75),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Text(
+                        'Es konnte keine Verbindung zur Datenbank hergestellt werden'),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _futureBuilderKey = UniqueKey();
+                          });
+                        },
+                        child: Text('Erneut versuchen'))
+                  ]),
+            );
           }
           final getitems = snapshot.data!;
           final items = removeDuplicatesKategorie(getitems);
