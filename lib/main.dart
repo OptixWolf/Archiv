@@ -219,6 +219,11 @@ class HomePageContentState extends State<HomePageContent> {
     }
   }
 
+  Future<bool> delay() async {
+    await Future.delayed(Duration(seconds: 2));
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -234,21 +239,34 @@ class HomePageContentState extends State<HomePageContent> {
                   children: [
                     LoadingAnimationWidget.threeArchedCircle(
                         color: Colors.blueGrey, size: 75),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Text(
-                        'Es konnte keine Verbindung zur Datenbank hergestellt werden'),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _futureBuilderKey = UniqueKey();
-                          });
-                        },
-                        child: Text('Erneut versuchen'))
+                    FutureBuilder(
+                        future: delay(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Container();
+                          } else {
+                            return Column(
+                              children: [
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                    'Es konnte keine Verbindung zur Datenbank hergestellt werden'),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _futureBuilderKey = UniqueKey();
+                                      });
+                                    },
+                                    child: Text('Erneut versuchen'))
+                              ],
+                            );
+                          }
+                        }),
                   ]),
             );
           }
